@@ -1,2 +1,0 @@
-# Daily backup at 02:05 container local time (set TIMEZONE in .env).
-5 2 * * * /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1

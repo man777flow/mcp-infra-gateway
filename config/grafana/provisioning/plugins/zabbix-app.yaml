@@ -1,9 +1,0 @@
-apiVersion: 1
-
-# Enable the Zabbix app plugin on startup.
-# GF_INSTALL_PLUGINS installs the plugin; this provisioning entry registers the datasource type.
-# Without this, Grafana reports the datasource URL as unreachable even after installation.
-apps:
-  - type: alexanderzobnin-zabbix-app
-    org_id: 1
-    disabled: false

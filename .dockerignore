@@ -1,8 +1,0 @@
-.env
-.git
-.gitignore
-*.md
-LICENSE
-docker-compose*.yml
-setup-zabbix-grafana-mcp.sh
-config.toml

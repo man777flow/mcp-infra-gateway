@@ -1,5 +1,13 @@
-# Environment variables — contains real API tokens, never commit
-.env
+# Real config — URLs and API keys, never commit
+instances.toml
 
-# Runtime data — backup dumps, postgres data (bind-mount fall-through), etc.
-data/
+# Generated from instances.toml — regenerate anytime with `make generate`
+docker-compose.generated.yml
+generated/
+
+# Leftovers from the old self-hosted-stack version of this repo
+*.oldstack.bak
+
+__pycache__/
+*.pyc
+.DS_Store
