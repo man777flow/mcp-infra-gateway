@@ -1,5 +1,5 @@
 # Real config — URLs and API keys, never commit
-instances.toml
+/instances.toml
 
 # Generated from instances.toml — regenerate anytime with `make generate`
 docker-compose.generated.yml

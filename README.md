@@ -22,7 +22,7 @@ scales to any number.
 ## Quick start
 
 ```bash
-git clone <this-repo>
+git clone https://github.com/washosk/mcp-infra-gateway.git
 cd mcp-infra-gateway
 cp instances.toml.example instances.toml
 ```
@@ -51,6 +51,41 @@ in, then exits.
 
 `instances.toml` holds these in plain text and is gitignored — it never
 leaves your machine and is never committed.
+
+## Example: multi-tenant configuration
+
+`instances.toml.example` covers the single-instance case. For a fuller
+picture of what multi-tenancy looks like in practice —
+[`examples/multi-tenant.instances.toml`](examples/multi-tenant.instances.toml)
+is a mock setup for an ops team running its own infrastructure plus
+monitoring for two separate client organizations:
+
+```toml
+[[zabbix]]
+name = "acme-prod"
+url = "https://zabbix.acme-ops.example.com"
+api_token = "..."
+port = 8001
+admin_port = 9001
+
+[[zabbix]]
+name = "client-a-prod"
+url = "https://zabbix.client-a.example.com"
+api_token = "..."
+port = 8002
+admin_port = 9002
+read_only = true          # this team only monitors client-a, doesn't manage it
+
+# ...plus client-b-staging, two Grafana instances, one Nautobot instance —
+# see the full file for all six.
+```
+
+Every value in that file is mock data — copy it as a starting point
+(`cp examples/multi-tenant.instances.toml instances.toml`), then replace
+each `url`/`api_token` with your real ones and pick ports that are free on
+your machine. Each instance still gets its own container, named
+`<type>-<name>` — `zabbix-acme-prod`, `zabbix-client-a-prod`,
+`grafana-client-a-prod`, and so on.
 
 ## Makefile reference
 
@@ -110,6 +145,7 @@ under `[[zabbix]]` becomes `zabbix-prod`. Run `make register`, or see
 ```
 Makefile
 instances.toml.example        # committed template
+examples/                     # committed, fuller mock example (multi-tenant)
 instances.toml                # gitignored — your real URLs + API keys
 docker-compose.generated.yml  # gitignored — generated
 generated/                    # gitignored — generated per-instance config + registry
