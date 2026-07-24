@@ -1,4 +1,4 @@
-# zabbix-grafana-mcp-stack
+# mcp-infra-gateway
 
 A generic, multi-instance MCP gateway for Zabbix, Grafana, and Nautobot. Bring
 your own servers — as many of each as you need — and expose them to any
@@ -8,11 +8,7 @@ config file and one command.
 This repo is **deployment-only**: no application code lives here. Each MCP
 server implementation is pulled from its upstream project at build time;
 this repo wires them up and runs one container per server instance you
-declare.
-
-Not tied to any one organization's infrastructure — this is the generic
-version. If you're at share.inc looking for the version pre-wired to our own
-servers, see [`share-mcps`](https://github.com/Share-Internet/share-mcps).
+declare. Not tied to any one organization's infrastructure.
 
 ## Why one container per instance
 
@@ -27,7 +23,7 @@ scales to any number.
 
 ```bash
 git clone <this-repo>
-cd zabbix-grafana-mcp-stack
+cd mcp-infra-gateway
 cp instances.toml.example instances.toml
 ```
 
