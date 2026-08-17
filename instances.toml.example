@@ -1,10 +1,19 @@
-# Copy this file to instances.toml and fill in your real servers + API keys:
+# Copy this file to instances.toml and fill in your real servers:
 #   cp instances.toml.example instances.toml
 #
-# instances.toml is gitignored — real URLs and tokens never get committed.
+# instances.toml is gitignored — real URLs and Keychain secret names never
+# get committed. API tokens themselves never touch this file at all: k9 fork
+# resolves them from macOS Keychain at generate-time via
+# ~/.claude/scripts/secret.sh, never stored in plaintext on disk long-term.
+#
+# Before editing, put each token in Keychain:
+#   printf %s "<zabbix-api-token>" | sh ~/.claude/scripts/secret.sh set zabbix-prod-api-token
+#   printf %s "<grafana-sa-token>" | sh ~/.claude/scripts/secret.sh set grafana-prod-api-token
+#
 # Each [[zabbix]] / [[grafana]] / [[nautobot]] block is one instance: its own
-# server, its own API key, its own container, its own port. Add as many of
-# each as you need — one org, multiple clients, staging + prod, whatever.
+# server, its own Keychain secret, its own container, its own port. Add as
+# many of each as you need — one org, multiple clients, staging + prod,
+# whatever.
 #
 # After editing, run `make install` (first time) or `make deploy` (after
 # changes) — nothing here is prompted for interactively.
@@ -17,7 +26,7 @@
 [[zabbix]]
 name = "prod"                      # used in the registered MCP server name: zabbix-prod
 url = "https://zabbix.example.com"
-api_token = "paste-your-zabbix-api-token-here"
+api_token_keychain = "zabbix-prod-api-token"   # secret.sh get zabbix-prod-api-token
 port = 8001
 admin_port = 9001
 read_only = false                  # true blocks all write operations
@@ -26,7 +35,7 @@ verify_ssl = true
 # [[zabbix]]
 # name = "client-a"
 # url = "https://zabbix.client-a.example.com"
-# api_token = "paste-token-here"
+# api_token_keychain = "zabbix-client-a-api-token"
 # port = 8011
 # admin_port = 9011
 # read_only = true
@@ -37,13 +46,13 @@ verify_ssl = true
 [[grafana]]
 name = "prod"                      # -> grafana-prod
 url = "https://grafana.example.com"
-api_token = "paste-your-grafana-service-account-token-here"
+api_token_keychain = "grafana-prod-api-token"  # secret.sh get grafana-prod-api-token
 port = 8101
 
 # [[grafana]]
 # name = "client-a"
 # url = "https://grafana.client-a.example.com"
-# api_token = "paste-token-here"
+# api_token_keychain = "grafana-client-a-api-token"
 # port = 8111
 
 # --- Nautobot ---------------------------------------------------------------
@@ -51,13 +60,12 @@ port = 8101
 [[nautobot]]
 name = "prod"                      # -> nautobot-prod
 url = "https://nautobot.example.com/"
-api_token = "paste-your-nautobot-api-token-here"
+api_token_keychain = "nautobot-prod-api-token"
 port = 8201
-github_token = ""                  # optional, only for knowledge-base search
+# github_token_keychain = ""       # optional, only for knowledge-base search
 
 # [[nautobot]]
 # name = "client-a"
 # url = "https://nautobot.client-a.example.com/"
-# api_token = "paste-token-here"
+# api_token_keychain = "nautobot-client-a-api-token"
 # port = 8211
-# github_token = ""

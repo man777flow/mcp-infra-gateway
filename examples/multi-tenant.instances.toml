@@ -2,7 +2,9 @@
 # own infrastructure plus monitoring for two separate client organizations.
 # All URLs and tokens below are mock data, purely illustrative. To actually
 # use this shape: `cp examples/multi-tenant.instances.toml instances.toml`,
-# then replace every url/api_token with your real ones and pick free ports.
+# then replace every url with your real one, put each token in Keychain
+# (printf %s "<token>" | sh ~/.claude/scripts/secret.sh set <name>), and
+# point api_token_keychain at that name. Pick free ports.
 #
 # Naming pattern used here: <org>-<env>. Each instance registers with AI
 # clients as <type>-<name>, e.g. zabbix-acme-prod, grafana-client-a-prod.
@@ -12,7 +14,7 @@
 [[zabbix]]
 name = "acme-prod"
 url = "https://zabbix.acme-ops.example.com"
-api_token = "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2"
+api_token_keychain = "REPLACE-ME"
 port = 8001
 admin_port = 9001
 read_only = false
@@ -21,7 +23,7 @@ verify_ssl = true
 [[zabbix]]
 name = "client-a-prod"
 url = "https://zabbix.client-a.example.com"
-api_token = "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3"
+api_token_keychain = "REPLACE-ME"
 port = 8002
 admin_port = 9002
 read_only = true          # this team only monitors client-a, doesn't manage it
@@ -30,7 +32,7 @@ verify_ssl = true
 [[zabbix]]
 name = "client-b-staging"
 url = "https://zabbix-staging.client-b.example.com"
-api_token = "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4"
+api_token_keychain = "REPLACE-ME"
 port = 8003
 admin_port = 9003
 read_only = true
@@ -41,13 +43,13 @@ verify_ssl = false        # self-signed cert on client-b's staging instance
 [[grafana]]
 name = "acme-prod"
 url = "https://grafana.acme-ops.example.com"
-api_token = "glsa_MockServiceAccountToken0000000000000000_a1b2c3d4"
+api_token_keychain = "REPLACE-ME"
 port = 8101
 
 [[grafana]]
 name = "client-a-prod"
 url = "https://grafana.client-a.example.com"
-api_token = "glsa_MockServiceAccountToken1111111111111111_b2c3d4e5"
+api_token_keychain = "REPLACE-ME"
 port = 8102
 
 # --- Nautobot ---------------------------------------------------------------
@@ -55,6 +57,6 @@ port = 8102
 [[nautobot]]
 name = "acme-prod"
 url = "https://nautobot.acme-ops.example.com/"
-api_token = "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5"
+api_token_keychain = "REPLACE-ME"
 port = 8201
-github_token = ""          # optional, only needed for knowledge-base search
+# github_token_keychain = ""  # optional, only needed for knowledge-base search

@@ -16,14 +16,15 @@ from common import (  # noqa: E402
     INSTANCES_TOML,
     REGISTRY_PATH,
     REPO_ROOT,
+    keychain_get,
     load_toml,
     render_template,
 )
 
 REQUIRED_FIELDS = {
-    "zabbix": ["name", "url", "api_token", "port", "admin_port"],
-    "grafana": ["name", "url", "api_token", "port"],
-    "nautobot": ["name", "url", "api_token", "port"],
+    "zabbix": ["name", "url", "api_token_keychain", "port", "admin_port"],
+    "grafana": ["name", "url", "api_token_keychain", "port"],
+    "nautobot": ["name", "url", "api_token_keychain", "port"],
 }
 
 
@@ -82,7 +83,7 @@ def zabbix_service(entry):
         {
             "NAME": name,
             "URL": entry["url"],
-            "API_TOKEN": entry["api_token"],
+            "API_TOKEN": keychain_get(entry["api_token_keychain"]),
             "READ_ONLY": str(entry.get("read_only", False)).lower(),
             "VERIFY_SSL": str(entry.get("verify_ssl", True)).lower(),
         },
@@ -139,7 +140,7 @@ def grafana_service(entry):
         "network_mode": "host",
         "environment": {
             "GRAFANA_URL": entry["url"],
-            "GRAFANA_SERVICE_ACCOUNT_TOKEN": entry["api_token"],
+            "GRAFANA_SERVICE_ACCOUNT_TOKEN": keychain_get(entry["api_token_keychain"]),
         },
         "command": ["-transport", "streamable-http", "-address", f"0.0.0.0:{port}"],
         "healthcheck": {
@@ -179,9 +180,11 @@ def nautobot_service(entry):
         "environment": {
             "NAUTOBOT_ENV": "prod",
             "NAUTOBOT_PROD_BASE_URL": entry["url"],
-            "NAUTOBOT_PROD_TOKEN": entry["api_token"],
-            "NAUTOBOT_TOKEN": entry["api_token"],
-            "GITHUB_TOKEN": entry.get("github_token", ""),
+            "NAUTOBOT_PROD_TOKEN": keychain_get(entry["api_token_keychain"]),
+            "NAUTOBOT_TOKEN": keychain_get(entry["api_token_keychain"]),
+            "GITHUB_TOKEN": keychain_get(entry["github_token_keychain"])
+            if entry.get("github_token_keychain")
+            else "",
             "SSL_VERIFY": "true",
             "MCP_TRANSPORT": "http",
             "MCP_PORT": str(port),
@@ -251,6 +254,7 @@ def main():
     with open(COMPOSE_PATH, "w") as f:
         json.dump(compose, f, indent=2)
         f.write("\n")
+    os.chmod(COMPOSE_PATH, 0o600)
 
     with open(REGISTRY_PATH, "w") as f:
         json.dump(registry, f, indent=2)

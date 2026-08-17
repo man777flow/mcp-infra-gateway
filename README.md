@@ -22,15 +22,22 @@ scales to any number.
 ## Quick start
 
 ```bash
-git clone https://github.com/washosk/mcp-infra-gateway.git
+git clone https://github.com/man777flow/mcp-infra-gateway.git
 cd mcp-infra-gateway
 cp instances.toml.example instances.toml
 ```
 
+Put each server's API token in macOS Keychain first (never in a file):
+
+```bash
+printf %s "<zabbix-api-token>" | sh ~/.claude/scripts/secret.sh set zabbix-prod-api-token
+printf %s "<grafana-sa-token>" | sh ~/.claude/scripts/secret.sh set grafana-prod-api-token
+```
+
 Edit `instances.toml`: for each Zabbix/Grafana/Nautobot server you want
-access to, add a block with its URL, an API key, and a port. See the
-comments in the example file — a couple of entries are filled in as a
-template, the rest are commented out.
+access to, add a block with its URL, the Keychain secret name
+(`api_token_keychain`), and a port. See the comments in the example file — a
+couple of entries are filled in as a template, the rest are commented out.
 
 ```bash
 make install
@@ -49,8 +56,13 @@ in, then exits.
   account → Add token.
 - **Nautobot**: log in → your profile → API tokens.
 
-`instances.toml` holds these in plain text and is gitignored — it never
-leaves your machine and is never committed.
+**k9 fork:** tokens never touch `instances.toml` or any file on disk
+long-term. `instances.toml` holds only a Keychain secret *name*
+(`api_token_keychain`) per instance; `scripts/generate.py` resolves the real
+value from macOS Keychain (via `~/.claude/scripts/secret.sh get <name>`) each
+time it regenerates `docker-compose.generated.yml` — the only place the raw
+token ends up on disk, gitignored and `chmod 600`. `instances.toml` itself is
+still gitignored too, but now it never holds a secret to begin with.
 
 ## Example: multi-tenant configuration
 
@@ -64,14 +76,14 @@ monitoring for two separate client organizations:
 [[zabbix]]
 name = "acme-prod"
 url = "https://zabbix.acme-ops.example.com"
-api_token = "..."
+api_token_keychain = "zabbix-acme-prod-api-token"
 port = 8001
 admin_port = 9001
 
 [[zabbix]]
 name = "client-a-prod"
 url = "https://zabbix.client-a.example.com"
-api_token = "..."
+api_token_keychain = "zabbix-client-a-prod-api-token"
 port = 8002
 admin_port = 9002
 read_only = true          # this team only monitors client-a, doesn't manage it
@@ -82,8 +94,9 @@ read_only = true          # this team only monitors client-a, doesn't manage it
 
 Every value in that file is mock data — copy it as a starting point
 (`cp examples/multi-tenant.instances.toml instances.toml`), then replace
-each `url`/`api_token` with your real ones and pick ports that are free on
-your machine. Each instance still gets its own container, named
+each `url` with your real one, put each token in Keychain (see Quick start),
+and point `api_token_keychain` at that name — then pick ports that are free
+on your machine. Each instance still gets its own container, named
 `<type>-<name>` — `zabbix-acme-prod`, `zabbix-client-a-prod`,
 `grafana-client-a-prod`, and so on.
 
@@ -114,13 +127,13 @@ time, that's expected. See [`types/nautobot/README.md`](types/nautobot/README.md
 ## How it works
 
 ```
-instances.toml              # you edit this: URLs + API keys, one block per instance
-        │
+instances.toml              # you edit this: URLs + Keychain secret names, one block per instance
+        │                      (real tokens live in macOS Keychain, resolved at generate-time)
         ▼  scripts/generate.py
         │
-docker-compose.generated.yml   # one service per instance (gitignored, regenerated)
+docker-compose.generated.yml   # one service per instance (gitignored, chmod 600, regenerated)
 generated/registry.json        # {type, name, port, mcp_url, ...} per instance
-generated/zabbix-<name>/config.toml   # per-instance Zabbix MCP config
+generated/zabbix-<name>/config.toml   # per-instance Zabbix MCP config (chmod 600)
 ```
 
 `scripts/generate.py` validates `instances.toml` (no duplicate names or
